@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace SampleSecurityApp.Controllers
 {
+    [Authorize(Roles = "Administrator,Manager")]
     public class EmployeeController : Controller
     {
         // GET: EmployeeController
@@ -24,6 +25,7 @@ namespace SampleSecurityApp.Controllers
         }
 
         // GET: EmployeeController/Create
+        [Authorize(Roles = "Administrator")]
         public ActionResult Create()
         {
             return View();
@@ -32,6 +34,7 @@ namespace SampleSecurityApp.Controllers
         // POST: EmployeeController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+      
         public ActionResult Create(IFormCollection collection)
         {
             try

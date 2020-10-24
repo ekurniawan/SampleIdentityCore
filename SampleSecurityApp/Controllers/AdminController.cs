@@ -176,5 +176,10 @@ namespace SampleSecurityApp.Controllers
 
             return RedirectToAction("EditRole", new { Id = roleId });
         }
+
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
     }
 }
