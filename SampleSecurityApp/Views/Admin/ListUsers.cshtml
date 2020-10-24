@@ -1,0 +1,60 @@
+﻿@model IEnumerable<SampleSecurityApp.Models.CustomIdentityUser>
+
+@{
+    ViewData["Title"] = "List Users";
+    int number = 0;
+}
+
+<h1>List Users</h1>
+
+@if (Model.Any())
+{
+    <a class="btn btn-primary mb-3" style="width:auto" asp-action="CreateUser"
+       asp-controller="Admin">Add new user</a>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Fullname</th>
+                <th>Email</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                number++;
+                <tr>
+                    <td>@number</td>
+                    <td>@user.Id</td>
+                    <td>@user.UserName</td>
+                    <td>@user.FullName</td>
+                    <td>@user.Email</td>
+                    <td>edit</td>
+                    <td>delete</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}
+else
+{
+    <div class="card col-md-4">
+        <div class="card-header">
+            Belum ada user
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">
+                Klik tombol dibawah untuk membuat user baru
+            </h5>
+            <a class="btn btn-primary" style="width:auto" asp-action="CreateUser">
+                Create User
+            </a>
+        </div>
+    </div>
+}
