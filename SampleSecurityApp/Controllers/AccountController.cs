@@ -102,9 +102,24 @@ namespace SampleSecurityApp.Controllers
             return View();
         }
 
+        [AllowAnonymous]
         public IActionResult AccessDenied()
         {
             return View();
+        }
+
+        [AllowAnonymous]
+        public async Task<IActionResult> CheckEmailInUse(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if(user == null)
+            {
+                return Json(true);
+            }
+            else
+            {
+                return Json($"Email {email} is already in use");
+            }
         }
     }
 }

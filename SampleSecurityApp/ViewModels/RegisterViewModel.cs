@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using SampleSecurityApp.Utilities;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -11,6 +13,9 @@ namespace SampleSecurityApp.ViewModels
     {
         [Required]
         [EmailAddress]
+        [Remote(action: "CheckEmailInUse",controller:"Account")]
+        [ValidEmailDomain(allowedDomain:"actual-training.com",
+            ErrorMessage ="Domain harus actual training")]
         public string Email { get; set; }
         
         [Required]
