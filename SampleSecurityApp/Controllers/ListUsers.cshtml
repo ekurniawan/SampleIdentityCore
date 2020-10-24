@@ -1,0 +1,15 @@
+﻿@model IEnumerable<SampleSecurityApp.Models.CustomIdentityUser>
+
+@{
+    ViewData["Title"] = "List Users";
+}
+
+<h1>List Users</h1>
+
+@if (Model.Any())
+{
+    <a class="btn btn-primary mb-3" style="width:auto" asp-action="CreateUser"
+       asp-controller="Admin">Add new user</a>
+
+
+}

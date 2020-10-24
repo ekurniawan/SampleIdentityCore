@@ -1,0 +1,49 @@
+﻿@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityRole>
+
+@{
+    ViewData["Title"] = "List Roles";
+}
+
+<h1>List Roles</h1>
+
+@if (Model.Any())
+{
+    <a class="btn btn-primary mb-3" style="width:auto" asp-action="CreateRole"
+       asp-controller="Admin">Add new role</a>
+
+    foreach (var role in Model)
+    {
+        <div class="card mb-3">
+            <div class="card-header">
+                Role ID: @role.Id
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">@role.Name</h5>
+            </div>
+            <div class="card-footer">
+                <a class="btn btn-primary btn-xs" asp-action="EditRole" 
+                   asp-controller="Admin" asp-route-id="@role.Id">edit</a>
+                <a class="btn btn-danger btn-xs">delete</a>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <div class="card col-md-4">
+        <div class="card-header">
+            Belum ada role
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">
+                Klik tombol dibawah untuk membuat role baru
+            </h5>
+            <a class="btn btn-primary" style="width:auto" asp-action="CreateRole">
+                Create Role
+            </a>
+        </div>
+    </div>
+}
+
+
+
