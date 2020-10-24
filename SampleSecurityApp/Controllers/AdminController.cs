@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using SampleSecurityApp.Models;
 using SampleSecurityApp.ViewModels;
@@ -13,11 +14,13 @@ namespace SampleSecurityApp.Controllers
     {
         private RoleManager<IdentityRole> _roleManager;
         private UserManager<CustomIdentityUser> _userManager;
+        private IEmailSender _emailSender;
         public AdminController(RoleManager<IdentityRole> roleManager,
-            UserManager<CustomIdentityUser> userManager)
+            UserManager<CustomIdentityUser> userManager, IEmailSender emailSender)
         {
             _roleManager = roleManager;
             _userManager = userManager;
+            _emailSender = emailSender;
         }
         public IActionResult Index()
         {
@@ -57,7 +60,7 @@ namespace SampleSecurityApp.Controllers
         //menampilkan semua role
         public IActionResult ListRoles()
         {
-            var roles = _roleManager.Roles; 
+            var roles = _roleManager.Roles;
             return View(roles);
         }
 
@@ -66,6 +69,53 @@ namespace SampleSecurityApp.Controllers
         {
             var users = _userManager.Users;
             return View(users);
+        }
+
+        public IActionResult CreateUser()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateUser(CreateUserViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    CustomIdentityUser newUser = new CustomIdentityUser
+                    {
+                        UserName = model.Email,
+                        Email = model.Email,
+                        FullName = model.FullName,
+                        Address = model.Address,
+                        City = model.City
+                    };
+                    string password = Guid.NewGuid().ToString().Substring(0, 8);
+
+                    //kirim email
+                    var result = await _userManager.CreateAsync(newUser, password);
+                    if (result.Succeeded)
+                    {
+                        await _emailSender.SendEmailAsync(model.Email, "Username dan Password - Security App",
+                            $"Username: {model.Email} dan Password: {password}, silahkan melakukan change password");
+                        return RedirectToAction("ListUsers", "Admin");
+                    }
+
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.ErrorMessage = ex.Message;
+                    return View(model);
+                }
+            }
+
+
+            return View(model);
         }
 
         public async Task<IActionResult> EditRole(string id)
@@ -84,9 +134,9 @@ namespace SampleSecurityApp.Controllers
             };
 
             //mengirimkan info user yg terdaftar pada role
-            foreach(var user in _userManager.Users)
+            foreach (var user in _userManager.Users)
             {
-                if(await _userManager.IsInRoleAsync(user, role.Name))
+                if (await _userManager.IsInRoleAsync(user, role.Name))
                 {
                     model.Users.Add(user.UserName);
                 }
@@ -109,7 +159,7 @@ namespace SampleSecurityApp.Controllers
             return View(model);
         }
 
-        public async  Task<IActionResult> EditUsersInRole(string roleId)
+        public async Task<IActionResult> EditUsersInRole(string roleId)
         {
             ViewBag.roleId = roleId;
             var role = await _roleManager.FindByIdAsync(roleId);
@@ -119,7 +169,7 @@ namespace SampleSecurityApp.Controllers
                 return View("NotFound");
             }
             var model = new List<UserRoleViewModel>();
-            foreach(var user in _userManager.Users)
+            foreach (var user in _userManager.Users)
             {
                 var userRoleViewModel = new UserRoleViewModel
                 {
@@ -147,7 +197,7 @@ namespace SampleSecurityApp.Controllers
                 return View("NotFound");
             }
 
-            for(int i = 0; i < model.Count; i++)
+            for (int i = 0; i < model.Count; i++)
             {
                 var user = await _userManager.FindByIdAsync(model[i].UserId);
                 IdentityResult result = null;
@@ -156,7 +206,7 @@ namespace SampleSecurityApp.Controllers
                 {
                     result = await _userManager.AddToRoleAsync(user, role.Name);
                 }
-                else if(!model[i].IsSelected && (await _userManager.IsInRoleAsync(user,role.Name)))
+                else if (!model[i].IsSelected && (await _userManager.IsInRoleAsync(user, role.Name)))
                 {
                     result = await _userManager.RemoveFromRoleAsync(user, role.Name);
                 }

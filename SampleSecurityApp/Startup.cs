@@ -15,6 +15,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using SampleSecurityApp.Models;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using SampleSecurityApp.Services;
 
 namespace SampleSecurityApp
 {
@@ -42,12 +44,12 @@ namespace SampleSecurityApp
                     Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddIdentity<CustomIdentityUser,IdentityRole>(options=> {
-                options.Password.RequiredLength = 10;
-                options.Password.RequiredUniqueChars = 3;
-                options.Password.RequireNonAlphanumeric = true;
-                options.Password.RequireLowercase = true;
-                options.Password.RequireUppercase = true;
-                options.Password.RequireDigit = true;
+                options.Password.RequiredLength = 8;
+                options.Password.RequiredUniqueChars = 0;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireDigit = false;
             }).AddEntityFrameworkStores<ApplicationDbContext>();
 
 
@@ -56,6 +58,8 @@ namespace SampleSecurityApp
                 var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
                 options.Filters.Add(new AuthorizeFilter(policy));
             });
+
+            services.AddTransient<IEmailSender, EmailSender>();
             /*services.AddControllersWithViews();
             services.AddRazorPages();*/
         }
