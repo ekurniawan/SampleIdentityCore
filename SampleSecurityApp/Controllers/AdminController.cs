@@ -83,6 +83,15 @@ namespace SampleSecurityApp.Controllers
                 RoleName = role.Name
             };
 
+            //mengirimkan info user yg terdaftar pada role
+            foreach(var user in _userManager.Users)
+            {
+                if(await _userManager.IsInRoleAsync(user, role.Name))
+                {
+                    model.Users.Add(user.UserName);
+                }
+            }
+
             return View(model);
         }
 
