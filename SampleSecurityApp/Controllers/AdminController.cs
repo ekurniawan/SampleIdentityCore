@@ -118,6 +118,19 @@ namespace SampleSecurityApp.Controllers
             return View(model);
         }
 
+
+        public async Task<IActionResult> EditUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                ViewBag.ErrorMessage = $"User dengan id {id} tidak ditemukan";
+                return View("NotFound");
+            }
+
+
+        }
+
         public async Task<IActionResult> EditRole(string id)
         {
             var role = await _roleManager.FindByIdAsync(id);

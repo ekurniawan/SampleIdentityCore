@@ -35,7 +35,8 @@
                     <td>@user.UserName</td>
                     <td>@user.FullName</td>
                     <td>@user.Email</td>
-                    <td>edit</td>
+                    <td><a asp-action="EditUser" class="btn btn-warning btn-sm"
+                           asp-route-id="@user.Id">edit</a></td>
                     <td>delete</td>
                 </tr>
             }
