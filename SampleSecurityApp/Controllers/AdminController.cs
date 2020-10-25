@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -322,5 +323,43 @@ namespace SampleSecurityApp.Controllers
 
             return View(model);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> ManageUserClaims(UserClaimsViewModel model)
+        {
+            var user = await _userManager.FindByIdAsync(model.UserId);
+            if (user == null)
+            {
+                ViewBag.ErrorMessage = $"User dengan id {model.UserId} tidak ditemukan";
+                return View("NotFound");
+            }
+
+            //delete semua claims dari user
+            var claims = await _userManager.GetClaimsAsync(user);
+            var result = await _userManager.RemoveClaimsAsync(user, claims);
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, "Tidak bisa mendelete semua claim dr user");
+                return View(model);
+            }
+
+            //tambahkan claims yg dipilih
+
+            //var selectClaimsLambda = 
+            //model.Claims.Where(c => c.IsSelected).Select(c => new Claim(c.ClaimType, c.ClaimType));
+            var selectClaims = (from c in model.Claims
+                               where c.IsSelected
+                               select new Claim(c.ClaimType,c.ClaimType)).ToList();
+
+            result = await _userManager.AddClaimsAsync(user, selectClaims);
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, "Tidak dapat menambahkan claims ke user");
+                return View(model);
+            }
+
+            return RedirectToAction("EditUser", new { Id = model.UserId });
+        }
+
     }
 }
