@@ -1,4 +1,6 @@
-﻿@model IEnumerable<SampleSecurityApp.Models.CustomIdentityUser>
+﻿@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService authorizationService
+@model IEnumerable<SampleSecurityApp.Models.CustomIdentityUser>
 
 @{
     ViewData["Title"] = "List Users";
@@ -7,11 +9,14 @@
 
 <h1>List Users</h1>
 
-<a asp-action="CreateUser" asp-controller="Admin" class="btn btn-primary">Create New User</a>
+@if ((await authorizationService.AuthorizeAsync(User, "CreateUserPolicy")).Succeeded)
+{
+    <a asp-action="CreateUser" asp-controller="Admin" class="btn btn-primary">Create New User</a>
+}
 
 @if (Model.Any())
 {
-    
+
 
     <table class="table table-striped">
         <thead>
@@ -35,8 +40,13 @@
                     <td>@user.UserName</td>
                     <td>@user.FullName</td>
                     <td>@user.Email</td>
-                    <td><a asp-action="EditUser" class="btn btn-warning btn-sm"
-                           asp-route-id="@user.Id">edit</a></td>
+                    <td>
+                        @if ((await authorizationService.AuthorizeAsync(User, "CreateUserPolicy")).Succeeded)
+                        {
+                            <a asp-action="EditUser" class="btn btn-warning btn-sm"
+                               asp-route-id="@user.Id">edit</a>
+                        }
+                    </td>
                     <td>delete</td>
                 </tr>
             }

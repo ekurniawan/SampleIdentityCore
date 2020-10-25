@@ -59,6 +59,12 @@ namespace SampleSecurityApp
                 options.Filters.Add(new AuthorizeFilter(policy));
             });
 
+            services.AddAuthentication().AddGoogle(options =>
+            {
+                options.ClientId = "905681010187-2gb36oe7l6s98nsoudftfffv7iujh9fr.apps.googleusercontent.com";
+                options.ClientSecret = "PRPD-mqGnTcmtwrTXmlRr985";
+            });
+
             services.AddAuthorization(options =>
             {
                 //ini relasinya AND

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Dependency;
 using SampleSecurityApp.Models;
 using SampleSecurityApp.ViewModels;
 
@@ -105,10 +107,18 @@ namespace SampleSecurityApp.Controllers
         }
 
         [AllowAnonymous]
-        public IActionResult Login(string returnUrl)
+        public async  Task<IActionResult> Login(string returnUrl)
         {
             ViewBag.returnUrl = returnUrl;
-            return View();
+
+            LoginViewModel model = new LoginViewModel
+            {
+                ReturnUrl = returnUrl,
+                ExternalLogins = 
+                (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList()
+            };
+
+            return View(model);
         }
 
         [HttpPost]
@@ -152,6 +162,77 @@ namespace SampleSecurityApp.Controllers
             else
             {
                 return Json($"Email {email} is already in use");
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public IActionResult ExternalLogin(string provider,string returnUrl)
+        {
+            var redirectUrl = Url.Action("ExternalLoginCallback", "Account",
+                new { ReturnUrl = returnUrl });
+            var properties = _signInManager
+                .ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return new ChallengeResult(provider, properties);
+        }
+
+
+        [AllowAnonymous]
+        public async Task<IActionResult> ExternalLoginCallback(
+            string returnUrl=null,string remoteError = null)
+        {
+            returnUrl = returnUrl ?? Url.Content("~/");
+            LoginViewModel loginViewModel = new LoginViewModel
+            {
+                ReturnUrl = returnUrl,
+                ExternalLogins =
+                (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList()
+            };
+
+            if (remoteError != null)
+            {
+                ModelState.AddModelError(string.Empty,
+                    $"Error dari external provider: {remoteError}");
+                return View("Login", loginViewModel);
+            }
+
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                ModelState.AddModelError(string.Empty, "Error loading external login info");
+                return View("Login", loginViewModel);
+            }
+
+            var signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider,
+                info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+
+            if (signInResult.Succeeded)
+            {
+                return LocalRedirect(returnUrl);
+            }
+            else
+            {
+                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                if (email != null)
+                {
+                    var user = await _userManager.FindByEmailAsync(email);
+                    if (user == null)
+                    {
+                        user = new CustomIdentityUser
+                        {
+                            UserName = info.Principal.FindFirstValue(ClaimTypes.Email),
+                            Email = info.Principal.FindFirstValue(ClaimTypes.Email)
+                        };
+                        await _userManager.CreateAsync(user);
+                    }
+
+                    await _userManager.AddLoginAsync(user, info);
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    return LocalRedirect(returnUrl);
+                }
+                ViewBag.ErrorTitle = $"Informasi provider tidak diterima dari {info.LoginProvider}";
+                ViewBag.ErrorMessage = "Silahkan kontak support";
+                return View("Error");
             }
         }
     }
