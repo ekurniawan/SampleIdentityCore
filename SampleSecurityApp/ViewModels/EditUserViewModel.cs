@@ -14,7 +14,7 @@ namespace SampleSecurityApp.ViewModels
             Roles = new List<string>();
         }
 
-        public int Id { get; set; }
+        public string Id { get; set; }
         [Required]
         public string UserName { get; set; }
         [Required]
