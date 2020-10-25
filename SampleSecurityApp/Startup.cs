@@ -59,6 +59,20 @@ namespace SampleSecurityApp
                 options.Filters.Add(new AuthorizeFilter(policy));
             });
 
+            services.AddAuthorization(options =>
+            {
+                //ini relasinya AND
+                options.AddPolicy("CreateUserPolicy", policy => policy.RequireClaim("Create User","true")
+                .RequireClaim("Edit User","true").RequireRole("Administrator","Moderator"));
+
+                //custom policy -- pakai atau
+                options.AddPolicy("CreateEmployeePolicy", policy => policy.RequireAssertion(context=>
+                    context.User.IsInRole("Administrator") || 
+                    context.User.HasClaim(claim=>claim.Type=="Create User" && claim.Value=="true")));
+
+                options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Administrator"));
+            });
+
             services.AddTransient<IEmailSender, EmailSender>();
             /*services.AddControllersWithViews();
             services.AddRazorPages();*/

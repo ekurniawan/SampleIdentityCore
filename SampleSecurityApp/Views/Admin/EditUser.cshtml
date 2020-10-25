@@ -74,9 +74,12 @@
                 <div class="card-body">
                     @if (Model.Claims.Any())
                     {
-                        foreach(var claim in Model.Claims)
+                        foreach (var claim in Model.Claims)
                         {
-                            <h5 class="card-title">@claim</h5>
+                            if (claim.Contains("true"))
+                            {
+                                <h5 class="card-title">@claim</h5>
+                            }
                         }
                     }
                     else

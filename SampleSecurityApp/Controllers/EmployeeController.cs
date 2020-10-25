@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace SampleSecurityApp.Controllers
 {
-    [Authorize(Roles = "Administrator,Manager")]
     public class EmployeeController : Controller
     {
         // GET: EmployeeController
@@ -25,7 +24,7 @@ namespace SampleSecurityApp.Controllers
         }
 
         // GET: EmployeeController/Create
-        [Authorize(Roles = "Administrator")]
+        [Authorize(Policy = "CreateEmployeePolicy")]
         public ActionResult Create()
         {
             return View();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -72,12 +73,14 @@ namespace SampleSecurityApp.Controllers
             return View(users);
         }
 
+        [Authorize(Policy = "CreateUserPolicy")]
         public IActionResult CreateUser()
         {
             return View();
         }
 
         [HttpPost]
+        [Authorize(Policy = "CreateUserPolicy")]
         public async Task<IActionResult> CreateUser(CreateUserViewModel model)
         {
             if (ModelState.IsValid)
@@ -140,7 +143,7 @@ namespace SampleSecurityApp.Controllers
                 FullName = user.FullName,
                 Address = user.Address,
                 City = user.City,
-                Claims = userClaims.Select(c=>c.Value).ToList(),
+                Claims = userClaims.Select(c=>c.Type + " : " +c.Value).ToList(),
                 Roles = userRoles.ToList()
             };
 
@@ -148,6 +151,7 @@ namespace SampleSecurityApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "CreateUserPolicy")]
         public async Task<IActionResult> EditUser(EditUserViewModel model)
         {
             if (ModelState.IsValid)
@@ -314,7 +318,7 @@ namespace SampleSecurityApp.Controllers
                 {
                     ClaimType = claim.Type
                 };
-                if (existingUserClaims.Any(c => c.Type == claim.Type))
+                if (existingUserClaims.Any(c => c.Type == claim.Type && c.Value=="true"))
                 {
                     userClaim.IsSelected = true;
                 }
@@ -348,8 +352,7 @@ namespace SampleSecurityApp.Controllers
             //var selectClaimsLambda = 
             //model.Claims.Where(c => c.IsSelected).Select(c => new Claim(c.ClaimType, c.ClaimType));
             var selectClaims = (from c in model.Claims
-                               where c.IsSelected
-                               select new Claim(c.ClaimType,c.ClaimType)).ToList();
+                               select new Claim(c.ClaimType,c.IsSelected?"true":"false")).ToList();
 
             result = await _userManager.AddClaimsAsync(user, selectClaims);
             if (!result.Succeeded)
